@@ -1,0 +1,17 @@
+Kp_pos
+ki_pos
+kd_pos
+kp_vel
+ki_vel
+kd_vel
+time_out
+mode
+desired velocity
+desired change in position
+
+
+% calculate
+linear position 
+angular position (0-2pi)
+angular velocity
+linear velocity
