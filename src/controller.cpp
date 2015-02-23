@@ -31,7 +31,7 @@ motor_controller::motor_controller(){
 	private_node_handle_.param<double>("wheel_radius_m", wheel_radius_m, 0.0619125);
 	private_node_handle_.param<double>("min_output", min_output, -100.0);
 	private_node_handle_.param<double>("max_output", max_output, 100.0);
-	private_node_handle_.param<std::string>("eqep_path", eqep_path, "/sys/devices/ocp.3/");
+	private_node_handle_.param<std::string>("eqep_path", eqep_path, "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep");
 	
 	// initialize PID loops
 	vel_PID = PID(Kp_vel, Ki_vel, Kd_vel, min_output, max_output);
@@ -39,12 +39,12 @@ motor_controller::motor_controller(){
   
 	//initialize the publishers and subscribers
 	std::string node_name = ros::this_node::getName();
-	char *n = new char[node_name.length() + 1];
-	std::strcpy(n,node_name.c_str());
+	//char *n = new char[node_name.length() + 1];
+	//std::strcpy(n,node_name.c_str());
 	
-	std::string joint_name(strcat(n,"/joint"));
-	std::string feedback_name(strcat(n,"/feedback"));
-	std::string command_name(strcat(n,"/command"));
+	std::string joint_name("/j");//strcat(n,"/joint"));
+	std::string feedback_name("/f");//strcat(n,"/feedback"));
+	std::string command_name("/c");//strcat(n,"/command"));
 	
 	joint_pub = nh.advertise<sensor_msgs::JointState>(joint_name, 1000);
 	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>(feedback_name, 1000);
@@ -59,6 +59,8 @@ motor_controller::motor_controller(){
 	double cur_vel_mps = 0.0;
 	double cur_pos_m = 0.0;
 	double cur_cur_amp = 0.0;
+	
+//	delete[] n;
   
 }
 
@@ -132,10 +134,10 @@ int main(int argc, char **argv)
 	ROS_INFO("laser scanner test node started!");	
 	
 	// Initialize GPIO
-	BlackLib::BlackGPIO ENA(BlackLib::GPIO_70,BlackLib::output, BlackLib::SecureMode);   
-	BlackLib::BlackGPIO ENB(BlackLib::GPIO_71,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INA(BlackLib::GPIO_72,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INB(BlackLib::GPIO_73,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO ENA(BlackLib::GPIO_39,BlackLib::output, BlackLib::SecureMode);   
+	BlackLib::BlackGPIO ENB(BlackLib::GPIO_38,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INA(BlackLib::GPIO_35,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INB(BlackLib::GPIO_34,BlackLib::output, BlackLib::SecureMode);
 
 	//NEEDS to BE ANALOG VALUE
 	//BlackLib::BlackGPIO   CS(BlackLib::GPIO_51,BlackLib::input, BlackLib::SecureMode);
