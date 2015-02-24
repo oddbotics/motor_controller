@@ -39,7 +39,7 @@ motor_controller::motor_controller(){
 	pos_PID = PID(Kp_pos, Ki_pos, Kd_pos, min_output, max_output);
   
 	//initialize the publishers and subscribers
-	node_name = ros::this_node::getNamespace();
+	node_name = ros::this_node::getName();
 	
 	joint_pub = nh.advertise<sensor_msgs::JointState>("/joint", 1000);
 	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>("/feedback", 1000);
