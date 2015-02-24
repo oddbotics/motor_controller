@@ -27,6 +27,7 @@ motor_controller::motor_controller(){
 	private_node_handle_.param<double>("kd_pos", Kd_pos, 1.0);
 	private_node_handle_.param<double>("rate_s", time_step_s, 0.01);
 	private_node_handle_.param<int>("mode", mode, 1);
+	private_node_handle_.param<double>("timeout_s", timeout_s, 1.0);
 	private_node_handle_.param<int>("ticks_per_rev", ticks_per_rev, 3200);
 	private_node_handle_.param<double>("wheel_radius_m", wheel_radius_m, 0.0619125);
 	private_node_handle_.param<double>("max_vel_mps", max_vel_mps, 2.0);
@@ -48,6 +49,9 @@ motor_controller::motor_controller(){
 	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>(feedback, 1000);
 	command_sub = nh.subscribe(command, 1000, &motor_controller::update_controller, this);
 	
+	//initialize timer
+	timeout_time_s = ros::Time::now().toSec();
+
 	//intialize state of the controller
 	// desired control 
 	des_vel_mps = 0.0;
@@ -66,8 +70,11 @@ motor_controller::motor_controller(){
  * controller and updates the variables accordingly
  */
 void motor_controller::update_controller(const oddbot_msgs::MotorCommand::ConstPtr& msg){
-	this->mode = msg->mode;
-	this->timeout = msg->timeout;
+	
+	//update the timeout for time the message was received
+	ros::Time ros_timeout_time = ros::Time::now() + ros::Duration(this->timeout_s);
+	this->timeout_time_s = ros_timeout_time.toSec();
+
 	// desired control 
 	if(fabs(msg->motor_vel) <= this->max_vel_mps){ 
 		this->des_vel_mps = msg->motor_vel;
@@ -156,8 +163,8 @@ void motor_controller::update_feedback(){
         fdbk_msg.value.push_back(this->time_step_s);
 	fdbk_msg.item.push_back("mode");
         fdbk_msg.value.push_back(this->mode);
-	fdbk_msg.item.push_back("timeout");
-        fdbk_msg.value.push_back(this->timeout);
+	fdbk_msg.item.push_back("timeout_s");
+        fdbk_msg.value.push_back(this->timeout_s);
 	fdbk_msg.item.push_back("des_pos_m");
         fdbk_msg.value.push_back(this->des_pos_m);
 	fdbk_msg.item.push_back("des_vel_mps");
@@ -225,6 +232,11 @@ int main(int argc, char **argv)
 		// check for updates
 		ros::spinOnce();
 		
+		//turn off the motor if it has not received a command after the timeout period
+		if((ros::Time::now().toSec() - mc.getTimeoutTime()) > 0){
+			mc.setDesVelToZero();
+		} 
+		
 		//get the change in encoder ticks
 		deltaEncoder_ticks = eqep.get_position();
 		
@@ -248,7 +260,7 @@ int main(int argc, char **argv)
 
 		//set the motor PWM value
 		pwmMotor.setDutyPercent(setMotor);
-		ROS_INFO("Servo Duty Cycle: %f", setMotor);
+		std::cout << setMotor << std::endl;		
 		//get the current drawn
 		//set  cur_cur_amp = CS.getValue();
 		

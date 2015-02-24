@@ -23,6 +23,8 @@ class motor_controller
 		void update_feedback();
 		double getTimeStepS(){return this->time_step_s;}
 		std::string getEqepPath(){return this->eqep_path;}
+		double getTimeoutTime(){return this->timeout_time_s;}
+		void setDesVelToZero(){this->des_vel_mps = 0.0;}
 		
 	private:
 		//call back function for subscriber
@@ -46,7 +48,8 @@ class motor_controller
 
 		//control variables
 		int mode;
-		double timeout;
+		double timeout_s;
+		double timeout_time_s;
 		
 		// desired control 
 		double des_vel_mps;
