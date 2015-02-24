@@ -146,7 +146,7 @@ void motor_controller::update_feedback(){
         fdbk_msg.value.push_back(this->cur_vel_mps);
 	fdbk_msg.item.push_back("wheel_radius_m");
         fdbk_msg.value.push_back(this->wheel_radius_m);
-	fdbk_msg.item.push_back("max_vel_mps);
+	fdbk_msg.item.push_back("max_vel_mps");
 	fdbk_msg.value.push_back(this->max_vel_mps);
 	fdbk_msg.item.push_back("cur_cur_amp");
         fdbk_msg.value.push_back(this->cur_cur_amp);
