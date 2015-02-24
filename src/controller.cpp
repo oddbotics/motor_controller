@@ -176,13 +176,13 @@ int main(int argc, char **argv)
 
 	motor_controller mc = motor_controller();
 
-	ROS_INFO("laser scanner test node started!");	
+	ROS_INFO("PID motor controller started!");	
 	
 	// Initialize GPIO
-	BlackLib::BlackGPIO ENA(BlackLib::GPIO_39,BlackLib::output, BlackLib::SecureMode);   
-	BlackLib::BlackGPIO ENB(BlackLib::GPIO_38,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INA(BlackLib::GPIO_35,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INB(BlackLib::GPIO_34,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO ENA(BlackLib::GPIO_11,BlackLib::output, BlackLib::SecureMode);   
+	BlackLib::BlackGPIO ENB(BlackLib::GPIO_10,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INA(BlackLib::GPIO_81,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INB(BlackLib::GPIO_9,BlackLib::output, BlackLib::SecureMode);
 
 	//NEEDS to BE ANALOG VALUE
 	//BlackLib::BlackGPIO   CS(BlackLib::GPIO_51,BlackLib::input, BlackLib::SecureMode);
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
 
 		//set the motor PWM value
 		pwmMotor.setDutyPercent(setMotor);
-		
+		ROS_INFO("Servo Duty Cycle: %f", setMotor);
 		//get the current drawn
 		//set  cur_cur_amp = CS.getValue();
 		

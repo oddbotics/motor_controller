@@ -1,9 +1,9 @@
 <launch>
   
-  <arg name="name_space"/>
+  <arg name="position"/>
   <arg name="type"/>
 
-  <node pkg="motor_controller" type="controller" name="motor" ns="$(arg name_space)">
+  <node pkg="motor_controller" type="controller" name="motor" ns="$(arg position)" output="screen">
 	<rosparam file="$(find motor_controller)/config/$(arg type).yaml" command="load" />
   </node>
 
