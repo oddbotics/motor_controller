@@ -119,7 +119,19 @@ float motor_controller::update_motor(int deltaEncoder_ticks){
  */
 void motor_controller::update_feedback(){
 	
-	//feedback_pub.publish();
+	//publish the joint state
+	sensor_msgs::JointState joint_msg;
+	joint_msg.header.stamp = ros::Time::now();
+	joint_msg.name.push_back("left_motor");
+	joint_msg.position.push_back(this->cur_pos_m);
+	joint_msg.velocity.push_back(this->cur_vel_mps);
+	joint_pub.publish(joint_msg);
+	
+
+	//publish all of the feedback
+	oddbot_msgs::MotorFeedback fdbk_msg;
+	fdbk_msg.header.stamp = ros::Time::now();
+	feedback_pub.publish(fdbk_msg);
 }
 
 /**
