@@ -39,22 +39,26 @@ motor_controller::motor_controller(){
 	pos_PID = PID(Kp_pos, Ki_pos, Kd_pos, min_output, max_output);
   
 	//initialize the publishers and subscribers
-	node_name = ros::this_node::getNamespace();
-	
-	joint_pub = nh.advertise<sensor_msgs::JointState>("/joint", 1000);
-	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>("/feedback", 1000);
-	command_sub = nh.subscribe("/command", 1000, &motor_controller::update_controller, this);
+	node_name = ros::this_node::getName();
+	std::string joint(node_name + "/joint");
+	std::string feedback(node_name + "/feedback");
+	std::string command(node_name + "/command");
+
+	joint_pub = nh.advertise<sensor_msgs::JointState>(joint, 1000);
+	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>(feedback, 1000);
+	command_sub = nh.subscribe(command, 1000, &motor_controller::update_controller, this);
 	
 	//intialize state of the controller
 	// desired control 
-	double des_vel_mps = 0.0;
-	double des_pos_m = 0.0;
+	des_vel_mps = 0.0;
+	des_pos_m = 0.0;
 
 	// current control
-	double cur_vel_mps = 0.0;
-	double cur_pos_m = 0.0;
-	double cur_cur_amp = 0.0;
-  
+	cur_vel_mps = 0.0;
+	cur_pos_m = 0.0;
+	cur_cur_amp = 0.0;
+  	cur_ang_pos_rad = 0.0;
+	cur_ang_vel_rps = 0.0;
 }
 
 /**
@@ -88,14 +92,20 @@ float motor_controller::update_motor(int deltaEncoder_ticks){
 
 	float setMotor;
 
+	//calculate angular position
+	float deltaAngPosition_rad = (((float)deltaEncoder_ticks) / this->ticks_per_rev) * (2 * M_PI);
+	this->cur_ang_pos_rad += deltaAngPosition_rad + (2 * M_PI);
+	this->cur_ang_pos_rad = fmod(this->cur_ang_pos_rad,(2 * M_PI));	
+
 	// calculate the position
-	float deltaPosition_m = (((float)deltaEncoder_ticks) / this->ticks_per_rev) * (2 * M_PI * this->wheel_radius_m); 
+	float deltaPosition_m =  deltaAngPosition_rad * this->wheel_radius_m; 
 	this->cur_pos_m += deltaPosition_m;
 	prev_deltaEncoder_ticks = deltaEncoder_ticks;
 	
 	// calculate the velocity
 	this->cur_vel_mps = deltaPosition_m/this->time_step_s;    
-
+	this->cur_ang_vel_rps = deltaAngPosition_rad/this->time_step_s;
+	
 	// calculate PID value for the appropriate mode
 	if(this->mode == 1) //VELOCITY
 	{
@@ -120,8 +130,8 @@ void motor_controller::update_feedback(){
 	sensor_msgs::JointState joint_msg;
 	joint_msg.header.stamp = ros::Time::now();
 	joint_msg.name.push_back(this->node_name);
-	joint_msg.position.push_back(this->cur_pos_m);
-	joint_msg.velocity.push_back(this->cur_vel_mps);
+	joint_msg.position.push_back(this->cur_ang_pos_rad);
+	joint_msg.velocity.push_back(this->cur_ang_vel_rps);
 	joint_pub.publish(joint_msg);
 	
 
@@ -132,6 +142,10 @@ void motor_controller::update_feedback(){
 	fdbk_msg.value.push_back(this->cur_pos_m);
 	fdbk_msg.item.push_back("cur_vel_mps");
         fdbk_msg.value.push_back(this->cur_vel_mps);
+	fdbk_msg.item.push_back("cur_ang_vel_rps");
+        fdbk_msg.value.push_back(this->cur_ang_vel_rps);
+	fdbk_msg.item.push_back("cur_ang_pos_rad");
+        fdbk_msg.value.push_back(this->cur_ang_pos_rad);
 	fdbk_msg.item.push_back("wheel_radius_m");
         fdbk_msg.value.push_back(this->wheel_radius_m);
 	fdbk_msg.item.push_back("max_vel_mps");
@@ -146,8 +160,8 @@ void motor_controller::update_feedback(){
         fdbk_msg.value.push_back(this->timeout);
 	fdbk_msg.item.push_back("des_pos_m");
         fdbk_msg.value.push_back(this->des_pos_m);
-	fdbk_msg.item.push_back("cur_vel_mps");
-        fdbk_msg.value.push_back(this->cur_vel_mps);
+	fdbk_msg.item.push_back("des_vel_mps");
+        fdbk_msg.value.push_back(this->des_vel_mps);
 	fdbk_msg.item.push_back("ticks_per_rev");
         fdbk_msg.value.push_back(this->ticks_per_rev);
 	feedback_pub.publish(fdbk_msg);

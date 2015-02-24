@@ -1,37 +1,10 @@
 <launch>
   
-  <arg name="name_space" default="motor" />
-  <arg name="kp_vel" default="400" />
-  <arg name="ki_vel" default="5.5" />
-  <arg name="kd_vel" default="0.01" />
-  <arg name="kp_pos" default="1.0" />
-  <arg name="ki_pos" default="1.0" />
-  <arg name="kd_pos" default="1.0" />
-  <arg name="rate_s" default="0.01" />
-  <arg name="mode" default="1" />
-  <arg name="ticks_per_rev" default="3200" />
-  <arg name="wheel_radius_m" default="0.0619125" />
-  <arg name="max_vel_mps" default="2.0" />
-  <arg name="min_output" default="-100.0" />
-  <arg name="max_output" default="100.0" />
-  <arg name="eqep_path" default="/sys/devices/ocp.3/48304000.epwmss/48304180.eqep" />
+  <arg name="name_space"/>
+  <arg name="type"/>
 
-
-  <node pkg="motor_controller" type="controller" name="motor" ns=$(arg name_space)>
-	<param name="kp_vel" type="double" value="$(arg kp_vel)" />
-	<param name="ki_vel" type="double" value="$(arg ki_vel)" />
-	<param name="kd_vel" type="double" value="$(arg kd_vel)" />	
-	<param name="kp_pos" type="double" value="$(arg kp_pos)" />
-	<param name="ki_pos" type="double" value="$(arg ki_pos)" />
-	<param name="kd_pos" type="double" value="$(arg kd_pos)" />
-	<param name="rate_s" type="double" value="$(arg rate_s)" />
-	<param name="mode" type="int" value="$(arg mode)" />
-	<param name="ticks_per_rev" type="int" value="$(arg ticks_per_rev)" />
-	<param name="wheel_radius_m" type="double" value="$(arg wheel_radius_m)" />
-	<param name="max_vel_mps" type="double" value="$(arg max_vel_mps)" />
-	<param name="min_output" type="double" value="$(arg min_output)" />
-	<param name="max_output" type="double" value="$(arg max_output)" />
-	<param name="eqep_path" type="sting" value="$(arg eqep_path)" />
+  <node pkg="motor_controller" type="controller" name="motor" ns="$(arg name_space)">
+	<rosparam file="$(find motor_controller)/config/$(arg type).yaml" command="load" />
   </node>
 
 </launch>

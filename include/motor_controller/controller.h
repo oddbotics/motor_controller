@@ -56,6 +56,8 @@ class motor_controller
 		double cur_vel_mps;
 		double cur_pos_m;
 		double cur_cur_amp;
+		double cur_ang_pos_rad;
+		double cur_ang_vel_rps;
 		
 		//PID handles
 		PID vel_PID;
