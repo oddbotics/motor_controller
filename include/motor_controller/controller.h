@@ -38,11 +38,12 @@ class motor_controller
 		double time_step_s;
 		double min_output;
 		double max_output;
-		
+				
 		// motor parameters
 		double wheel_radius_m;
 		int ticks_per_rev;
-		
+		double max_vel_mps;		
+
 		//control variables
 		int mode;
 		double timeout;
@@ -66,6 +67,9 @@ class motor_controller
 		//Subscribers and publishers
 		ros::Subscriber command_sub;
 		ros::Publisher feedback_pub,joint_pub;
+		
+		//node name to use for joint state
+		std::string node_name;
 };
 
 #endif

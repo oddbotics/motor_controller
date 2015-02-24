@@ -29,22 +29,27 @@ motor_controller::motor_controller(){
 	private_node_handle_.param<int>("mode", mode, 1);
 	private_node_handle_.param<int>("ticks_per_rev", ticks_per_rev, 3200);
 	private_node_handle_.param<double>("wheel_radius_m", wheel_radius_m, 0.0619125);
+	private_node_handle_.param<double>("max_vel_mps", max_vel_mps, 2.0);
 	private_node_handle_.param<double>("min_output", min_output, -100.0);
 	private_node_handle_.param<double>("max_output", max_output, 100.0);
-	private_node_handle_.param<std::string>("eqep_path", eqep_path, "/sys/devices/ocp.3/");
+	private_node_handle_.param<std::string>("eqep_path", eqep_path, "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep");
 	
 	// initialize PID loops
 	vel_PID = PID(Kp_vel, Ki_vel, Kd_vel, min_output, max_output);
 	pos_PID = PID(Kp_pos, Ki_pos, Kd_pos, min_output, max_output);
   
 	//initialize the publishers and subscribers
-	std::string node_name = ros::this_node::getName();
-	char *n = new char[node_name.length() + 1];
-	std::strcpy(n,node_name.c_str());
+	node_name = ros::this_node::getName();
+	std::string joint("/joint");
+        std::string feedback("/feedback");
+	std::string command("/command");
+
+	//char *n = new char[node_name.length() + 1];
+	//std::strcat(n,node_name.c_str());
 	
-	std::string joint_name(strcat(n,"/joint"));
-	std::string feedback_name(strcat(n,"/feedback"));
-	std::string command_name(strcat(n,"/command"));
+	std::string joint_name(node_name.append(joint));
+	std::string feedback_name(node_name.append(feedback));
+	std::string command_name(node_name.append(command));
 	
 	joint_pub = nh.advertise<sensor_msgs::JointState>(joint_name, 1000);
 	feedback_pub = nh.advertise<oddbot_msgs::MotorFeedback>(feedback_name, 1000);
@@ -59,6 +64,8 @@ motor_controller::motor_controller(){
 	double cur_vel_mps = 0.0;
 	double cur_pos_m = 0.0;
 	double cur_cur_amp = 0.0;
+	
+//	delete[] n;
   
 }
 
@@ -67,11 +74,15 @@ motor_controller::motor_controller(){
  * controller and updates the variables accordingly
  */
 void motor_controller::update_controller(const oddbot_msgs::MotorCommand::ConstPtr& msg){
-	this->mode = 0;
-	this->timeout = 0;
+	this->mode = msg->mode;
+	this->timeout = msg->timeout;
 	// desired control 
-	this->des_vel_mps = 0.0;
-	this->des_pos_m = 0.0;
+	if(fabs(msg->motor_vel) < this->max_vel_mps){ 
+		this->des_vel_mps = msg->motor_vel;
+	} else {
+		this->des_vel_mps = this->max_vel_mps;
+	}
+	this->des_pos_m = msg->motor_pos;
 }
 
 /**
@@ -117,7 +128,41 @@ float motor_controller::update_motor(int deltaEncoder_ticks){
  */
 void motor_controller::update_feedback(){
 	
-	//feedback_pub.publish();
+	//publish the joint state
+	sensor_msgs::JointState joint_msg;
+	joint_msg.header.stamp = ros::Time::now();
+	joint_msg.name.push_back(this->node_name);
+	joint_msg.position.push_back(this->cur_pos_m);
+	joint_msg.velocity.push_back(this->cur_vel_mps);
+	joint_pub.publish(joint_msg);
+	
+
+	//publish all of the feedback
+	oddbot_msgs::MotorFeedback fdbk_msg;
+	fdbk_msg.header.stamp = ros::Time::now();
+	fdbk_msg.item.push_back("cur_pos_m");
+	fdbk_msg.value.push_back(this->cur_pos_m);
+	fdbk_msg.item.push_back("cur_vel_mps");
+        fdbk_msg.value.push_back(this->cur_vel_mps);
+	fdbk_msg.item.push_back("wheel_radius_m");
+        fdbk_msg.value.push_back(this->wheel_radius_m);
+	fdbk_msg.item.push_back("max_vel_mps);
+	fdbk_msg.value.push_back(this->max_vel_mps);
+	fdbk_msg.item.push_back("cur_cur_amp");
+        fdbk_msg.value.push_back(this->cur_cur_amp);
+	fdbk_msg.item.push_back("time_step_s");
+        fdbk_msg.value.push_back(this->time_step_s);
+	fdbk_msg.item.push_back("mode");
+        fdbk_msg.value.push_back(this->mode);
+	fdbk_msg.item.push_back("timeout");
+        fdbk_msg.value.push_back(this->timeout);
+	fdbk_msg.item.push_back("des_pos_m");
+        fdbk_msg.value.push_back(this->des_pos_m);
+	fdbk_msg.item.push_back("cur_vel_mps");
+        fdbk_msg.value.push_back(this->cur_vel_mps);
+	fdbk_msg.item.push_back("ticks_per_rev");
+        fdbk_msg.value.push_back(this->ticks_per_rev);
+	feedback_pub.publish(fdbk_msg);
 }
 
 /**
@@ -132,10 +177,10 @@ int main(int argc, char **argv)
 	ROS_INFO("laser scanner test node started!");	
 	
 	// Initialize GPIO
-	BlackLib::BlackGPIO ENA(BlackLib::GPIO_70,BlackLib::output, BlackLib::SecureMode);   
-	BlackLib::BlackGPIO ENB(BlackLib::GPIO_71,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INA(BlackLib::GPIO_72,BlackLib::output, BlackLib::SecureMode);
-	BlackLib::BlackGPIO INB(BlackLib::GPIO_73,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO ENA(BlackLib::GPIO_39,BlackLib::output, BlackLib::SecureMode);   
+	BlackLib::BlackGPIO ENB(BlackLib::GPIO_38,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INA(BlackLib::GPIO_35,BlackLib::output, BlackLib::SecureMode);
+	BlackLib::BlackGPIO INB(BlackLib::GPIO_34,BlackLib::output, BlackLib::SecureMode);
 
 	//NEEDS to BE ANALOG VALUE
 	//BlackLib::BlackGPIO   CS(BlackLib::GPIO_51,BlackLib::input, BlackLib::SecureMode);
