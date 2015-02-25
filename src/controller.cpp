@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 
 		//set the motor PWM value
 		pwmMotor.setDutyPercent(setMotor);
-		std::cout << setMotor << std::endl;		
+
 		//get the current drawn
 		//set  cur_cur_amp = CS.getValue();
 		

@@ -1,6 +1,6 @@
 kp_vel: 400
-ki_vel: 50.5
-kd_vel: 0.05
+ki_vel: 5.5
+kd_vel: 0.01
 kp_pos: 1.0
 ki_pos: 1.0
 rate_s: 0.01
