@@ -1,0 +1,23 @@
+kp_vel: 400
+ki_vel: 5.5
+kd_vel: 0.01
+kp_pos: 1.0
+ki_pos: 1.0
+rate_s: 0.01
+mode: 1
+min_output: -100.0
+max_output: 100.0
+
+timeout_s: 1.0
+
+ticks_per_rev: 3200
+wheel_radius_m: 0.0619125
+max_vel_mps: 1.0
+min_vel_mps: -1.0
+max_acc_mpss: 4.0
+min_acc_mpss: -4.0
+
+eqep_path: /sys/devices/ocp.3/48304000.epwmss/48304180.eqep
+
+dist_m: 0.1
+
